@@ -16,7 +16,12 @@ import {
     ConfigModule.forRoot({
       load: [configuration],
       // cache: true,
-      envFilePath: ['.env', '.env.development', '.env.production'],
+      envFilePath: [
+        '.env.production',
+        '.env.stage',
+        '.env.development',
+        '.env',
+      ],
       validationSchema: validationSchema,
       isGlobal: true,
     }),

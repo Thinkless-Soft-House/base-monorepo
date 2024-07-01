@@ -3,6 +3,8 @@
 node_modules
 */dist
 *.env
+*.env.stage
+*.env.production
 .turbo
 
 # Backend

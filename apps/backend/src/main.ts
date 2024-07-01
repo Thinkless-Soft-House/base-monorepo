@@ -18,8 +18,8 @@ async function bootstrap() {
   const nodeEnv = configService.get<'development' | 'stage' | 'production'>(
     'nodeEnv',
   );
-
   const port = configService.get('port');
+  console.log(`Running in ${nodeEnv} mode in port ${port}`);
 
   // Middlewares
   // Cors configurations
