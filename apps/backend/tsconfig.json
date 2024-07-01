@@ -28,9 +28,9 @@
       "@interceptors/*": ["src/shared/interceptors/*"],
       "@middlewares/*": ["src/shared/middlewares/*"],
       "@pipes/*": ["src/shared/pipes/*"],
+      "@decorators/*": ["src/shared/decorators/*"],
 
-      "@modules": ["src/modules"],
-      "@app": ["src/*"]
+      "@modules/*": ["src/modules/*"]
     }
   }
 }

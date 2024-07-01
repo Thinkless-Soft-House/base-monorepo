@@ -29,6 +29,11 @@ export const configuration = () => ({
   },
   logger: process.env.LOGGER || ['verbose', 'advice', 'none'],
   defaultVersion: process.env.DEFAULT_VERSION || '1',
+  jwt: {
+    secret: process.env.JWT_SECRET || 'secret_default',
+    ignoreExpiration: process.env.JWT_IGNORE_EXPIRATION === 'true',
+    ttl: process.env.JWT_TTL || '7d',
+  },
 });
 
 export const validationSchema = Joi.object({
@@ -37,7 +42,9 @@ export const validationSchema = Joi.object({
   DATABASE_USER: Joi.string().required(),
   DATABASE_PASSWORD: Joi.string().required(),
   DATABASE_NAME: Joi.string().required(),
-  //   JWT_SECRET: Joi.string().required(),
+  JWT_SECRET: Joi.string().optional(),
+  JWT_IGNORE_EXPIRATION: Joi.boolean().default(false),
+  JWT_TTL: Joi.string().default('7d'),
   PORT: Joi.number().required(),
   NODE_ENV: Joi.string()
     .valid('development', 'stage', 'production')
