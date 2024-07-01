@@ -2,24 +2,29 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 
 import helmet from 'helmet';
+// import * as chalk from 'chalk';
 import * as morgan from 'morgan';
 import * as cookieParser from 'cookie-parser';
-import { formatInTimeZone } from 'date-fns-tz';
+
+// import { formatInTimeZone } from 'date-fns-tz';
 
 import { AppModule } from './app.module';
 import { corsConfig } from '@config/cors.config';
 import { TransformResponseInterceptor } from '@interceptors/default-response.interceptor';
 import { DefaultExceptionFilter } from '@filters/default-exception.filter';
 import helmetConfig from '@config/helmet.config';
+import { VersioningType } from '@nestjs/common';
+import getMorgan from '@config/morgan.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'fatal'],
+  });
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<'development' | 'stage' | 'production'>(
     'nodeEnv',
   );
   const port = configService.get('port');
-  console.log(`Running in ${nodeEnv} mode in port ${port}`);
 
   // Middlewares
   // Cors configurations
@@ -29,30 +34,28 @@ async function bootstrap() {
 
   // Helmet configurations
   const helmetConfigVars = configService.get('helmet');
-  const helmetConfigOptions: any = {};
-  if (helmetConfigVars.trustDomains) {
-    helmetConfigOptions.trustDomains = helmetConfigVars.trustDomains;
-  }
-  if (helmetConfigVars.contentSecurityPolicySpecificTrustDomains) {
-    helmetConfigOptions.contentSecurityPolicySpecificTrustDomains =
-      helmetConfigVars.contentSecurityPolicySpecificTrustDomains;
-  }
+  const helmetConfigOptions: any = {
+    trusDomains: helmetConfigVars.trustDomains ?? [],
+    contentSecurityPolicySpecificTrustDomains:
+      helmetConfigVars.contentSecurityPolicySpecificTrustDomains ?? {},
+  };
   app.use(helmet(helmetConfig(nodeEnv, helmetConfigOptions)));
 
   app.use(cookieParser());
+  const myMorgan = getMorgan(morgan);
 
-  morgan.token('id', function getId(req) {
-    return (req.headers['x-request-id'] as string) ?? 'null-id';
-  });
-  morgan.token('date-br', function getDate() {
-    const timezone = 'America/Sao_Paulo';
-    const date = new Date();
-    return formatInTimeZone(date, timezone, 'yyyy-MM-dd HH:mm:ssXXX');
-  });
-
+  // Definindo o formato do Morgan com tokens personalizados
   const morganFormat =
-    ':id => :date-br Req= :method :url :status :res[content-length] - :response-time ms';
-  app.use(morgan(morganFormat));
+    ':id => :date-br Req= :method :url :status :res[content-length] - :response-time';
+
+  // Usando o middleware Morgan com o formato definido
+  app.use(
+    myMorgan(morganFormat, {
+      stream: {
+        write: (message) => console.log(message.trim()),
+      },
+    }),
+  );
 
   // Interceptors
   app.useGlobalInterceptors(new TransformResponseInterceptor());
@@ -60,6 +63,14 @@ async function bootstrap() {
   // Exception Filter
   app.useGlobalFilters(new DefaultExceptionFilter());
 
+  // Versioning
+  app.setGlobalPrefix('api');
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
   await app.listen(port);
+  console.log(`Running in ${nodeEnv} mode in port ${port}`);
 }
 bootstrap();
