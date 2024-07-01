@@ -27,6 +27,8 @@ export const configuration = () => ({
         )
       : {},
   },
+  logger: process.env.LOGGER || ['verbose', 'advice', 'none'],
+  defaultVersion: process.env.DEFAULT_VERSION || '1',
 });
 
 export const validationSchema = Joi.object({
@@ -50,4 +52,6 @@ export const validationSchema = Joi.object({
   HELMET_CONTENT_SECURITY_POLICY_SPECIFIC_TRUST_DOMAINS: Joi.string()
     .custom(UtilsHandler.jsonValidator, 'JSON validation')
     .optional(),
+  LOGGER: Joi.string().valid('verbose', 'advice', 'none').default('verbose'),
+  DEFAULT_VERSION: Joi.number().default('1'),
 });

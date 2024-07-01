@@ -17,13 +17,20 @@ import { VersioningType } from '@nestjs/common';
 import getMorgan from '@config/morgan.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'fatal'],
-  });
+  const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<'development' | 'stage' | 'production'>(
     'nodeEnv',
   );
+  const loogerLevel = configService.get('logger');
+  app.useLogger(
+    loogerLevel === 'verbose'
+      ? ['error', 'warn', 'log', 'debug', 'verbose', 'fatal']
+      : loogerLevel === 'advice'
+        ? ['error', 'warn', 'fatal']
+        : false,
+  );
+
   const port = configService.get('port');
 
   // Middlewares
@@ -67,7 +74,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1',
+    defaultVersion: configService.get('defaultVersion'),
   });
 
   await app.listen(port);

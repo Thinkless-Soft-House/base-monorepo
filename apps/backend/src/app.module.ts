@@ -10,6 +10,7 @@ import {
   configuration,
   validationSchema,
 } from '@definitions/configuration.types';
+import { AppNewController } from './app-new.controller';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import {
       isGlobal: true,
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, AppNewController],
   providers: [AppService, Logger],
 })
 export class AppModule implements NestModule {
