@@ -21,6 +21,8 @@
     "paths": {
       "@crud/*": ["src/shared/crud/*"],
       "@definitions/*": ["src/shared/definitions/*"],
+      "@config/*": ["src/shared/config/*"],
+      "@handlers/*": ["src/shared/handlers/*"],
       "@filters/*": ["src/shared/filters/*"],
       "@guards/*": ["src/shared/guards/*"],
       "@interceptors/*": ["src/shared/interceptors/*"],

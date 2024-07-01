@@ -12,5 +12,6 @@
 			"cache": false
 		}
 	},
-	"globalDependencies": [".env", "tsconfig.json"]
+	"globalDependencies": [".env"],
+	"globalPassThroughEnv": ["PORT"]
 }

@@ -5,14 +5,33 @@ import { ConfigModule } from '@nestjs/config';
 
 import { RequestIdMiddleware } from '@middlewares/request-id.middleware';
 import { LocalizationMiddleware } from '@middlewares/request-location.middleware';
+import { CookieConfigurationMiddleware } from '@middlewares/cookie-configuration.middleware';
+import {
+  configuration,
+  validationSchema,
+} from '@definitions/configuration.types';
 
 @Module({
-  imports: [ConfigModule.forRoot()],
+  imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+      // cache: true,
+      envFilePath: ['.env', '.env.development', '.env.production'],
+      validationSchema: validationSchema,
+      isGlobal: true,
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware, LocalizationMiddleware).forRoutes('*');
+    consumer
+      .apply(
+        RequestIdMiddleware,
+        LocalizationMiddleware,
+        CookieConfigurationMiddleware,
+      )
+      .forRoutes('*');
   }
 }

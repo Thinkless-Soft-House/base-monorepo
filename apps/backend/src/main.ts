@@ -1,20 +1,45 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
+
 import helmet from 'helmet';
 import * as morgan from 'morgan';
+import * as cookieParser from 'cookie-parser';
 import { formatInTimeZone } from 'date-fns-tz';
-import { TransformResponseInterceptor } from './shared/interceptors/default-response.interceptor';
-import { DefaultExceptionFilter } from './shared/filters/default-exception.filter';
+
+import { AppModule } from './app.module';
+import { corsConfig } from '@config/cors.config';
+import { TransformResponseInterceptor } from '@interceptors/default-response.interceptor';
+import { DefaultExceptionFilter } from '@filters/default-exception.filter';
+import helmetConfig from '@config/helmet.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const nodeEnv = configService.get<'development' | 'stage' | 'production'>(
+    'nodeEnv',
+  );
+
+  const port = configService.get('port');
 
   // Middlewares
-  app.enableCors({
-    origin: '*',
-    credentials: true,
-  });
-  app.use(helmet());
+  // Cors configurations
+  const origins = configService.get('cors.origin');
+  const onlyOrigin = configService.get('cors.onlyOrigin');
+  app.enableCors(corsConfig(origins, onlyOrigin));
+
+  // Helmet configurations
+  const helmetConfigVars = configService.get('helmet');
+  const helmetConfigOptions: any = {};
+  if (helmetConfigVars.trustDomains) {
+    helmetConfigOptions.trustDomains = helmetConfigVars.trustDomains;
+  }
+  if (helmetConfigVars.contentSecurityPolicySpecificTrustDomains) {
+    helmetConfigOptions.contentSecurityPolicySpecificTrustDomains =
+      helmetConfigVars.contentSecurityPolicySpecificTrustDomains;
+  }
+  app.use(helmet(helmetConfig(nodeEnv, helmetConfigOptions)));
+
+  app.use(cookieParser());
 
   morgan.token('id', function getId(req) {
     return (req.headers['x-request-id'] as string) ?? 'null-id';
@@ -35,6 +60,6 @@ async function bootstrap() {
   // Exception Filter
   app.useGlobalFilters(new DefaultExceptionFilter());
 
-  await app.listen(3000);
+  await app.listen(port);
 }
 bootstrap();
