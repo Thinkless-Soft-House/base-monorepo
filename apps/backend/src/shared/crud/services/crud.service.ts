@@ -29,6 +29,14 @@ export class CrudService<
     return createManyDto as unknown as Entity[];
   }
 
+  setOne(id: string, setDto: UpdateEntityDTO): Entity {
+    return { id, ...setDto } as unknown as Entity;
+  }
+
+  setMany(setManyDto: UpdateEntityDTO[]) {
+    return setManyDto as unknown as Entity[];
+  }
+
   updateOne(id: string, updateDto: UpdateEntityDTO): Entity {
     return { id, ...updateDto } as unknown as Entity;
   }

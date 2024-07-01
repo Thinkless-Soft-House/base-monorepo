@@ -10,4 +10,30 @@ export default class UtilsHandler {
       return helpers.error('any.invalid');
     }
   }
+
+  static loggingValidator(value, helpers) {
+    // Value is a joined array of values separated by commas
+    // Possible values are: query, schema, error, warn, info, log, migration
+    const values = value.split(',');
+    const validValues = [
+      'query',
+      'schema',
+      'error',
+      'warn',
+      'info',
+      'log',
+      'migration',
+    ];
+
+    // Check if all values are valid
+    const isValid = values.every((v) => validValues.includes(v));
+
+    // If not valid, return an error
+    if (!isValid) {
+      return helpers.error('any.invalid');
+    }
+
+    // If valid, return the array of values
+    return values;
+  }
 }

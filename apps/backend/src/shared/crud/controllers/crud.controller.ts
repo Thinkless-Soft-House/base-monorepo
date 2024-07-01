@@ -1,4 +1,4 @@
-import { Get, Post, Delete, Body, Param, Patch } from '@nestjs/common';
+import { Get, Post, Delete, Body, Param, Patch, Put } from '@nestjs/common';
 import type {
   IsCrudService,
   IsEntityModel,
@@ -61,6 +61,30 @@ export class CrudController<
     }
   }
 
+  @Put('single')
+  async setOne(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateEntityDTO,
+  ): Promise<Response<Entity>> {
+    try {
+      const res = await this.service.updateOne(id, updateDto);
+      return new SuccessHandlerResponse<Entity>(res);
+    } catch (error) {
+      throw new ErrorHandlerResponse<Entity>();
+    }
+  }
+
+  @Put('many')
+  async setMany(
+    @Body() updateManyDto: UpdateEntityDTO[],
+  ): Promise<Response<Entity>> {
+    try {
+      const res = await this.service.updateMany(updateManyDto);
+      return new SuccessHandlerResponse<Entity>(res);
+    } catch (error) {
+      throw new ErrorHandlerResponse<Entity>();
+    }
+  }
   @Patch('single/:id')
   async updateOne(
     @Param('id') id: string,

@@ -18,6 +18,9 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { JwtStrategy } from '@modules/auth/strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from '@guards/passport-jwt.guard';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './modules/users/users.module';
+import OrmConfig from '@database/config.database';
 
 const allModules = [AuthModule];
 
@@ -25,7 +28,7 @@ const allModules = [AuthModule];
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
-      // cache: true,
+      cache: true,
       envFilePath: [
         '.env.production',
         '.env.stage',
@@ -46,7 +49,13 @@ const allModules = [AuthModule];
         };
       },
     }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => OrmConfig(configService),
+    }),
     ...allModules,
+    UsersModule,
   ],
   controllers: [AppController, AppNewController],
   providers: [

@@ -10,7 +10,9 @@ export const configuration = () => ({
     port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
-    name: process.env.DATABASE_NAME,
+    database: process.env.DATABASE_NAME,
+    synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
+    logging: process.env.DATABASE_LOGGING,
   },
   cors: {
     origin: process.env.CORS_ORIGIN || '*',
@@ -42,6 +44,10 @@ export const validationSchema = Joi.object({
   DATABASE_USER: Joi.string().required(),
   DATABASE_PASSWORD: Joi.string().required(),
   DATABASE_NAME: Joi.string().required(),
+  DATABASE_SYNCHRONIZE: Joi.boolean().default(false),
+  DATABASE_LOGGING: Joi.string()
+    .custom(UtilsHandler.loggingValidator, 'Logging validation')
+    .default('query'),
   JWT_SECRET: Joi.string().optional(),
   JWT_IGNORE_EXPIRATION: Joi.boolean().default(false),
   JWT_TTL: Joi.string().default('7d'),

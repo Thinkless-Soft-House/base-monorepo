@@ -29,6 +29,7 @@
       "@middlewares/*": ["src/shared/middlewares/*"],
       "@pipes/*": ["src/shared/pipes/*"],
       "@decorators/*": ["src/shared/decorators/*"],
+      "@database/*": ["src/shared/database/*"],
 
       "@modules/*": ["src/modules/*"]
     }
