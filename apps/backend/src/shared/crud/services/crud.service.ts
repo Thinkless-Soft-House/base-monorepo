@@ -103,8 +103,18 @@ export class CrudService<
     return ids as unknown as Entity[];
   }
 
+  protected getHandler(
+    item: { column: string; value: any },
+    relations: Relation[],
+  ): SelectQueryBuilder<Entity> {
+    let data = this.repository.createQueryBuilder(this.table);
+    data = DatabaseHandler.getRelations(this.table, data, relations);
+
+    return data;
+  }
+
   // Target to override in the child class
-  public applyCustomFilters(
+  protected applyCustomFilters(
     query: SelectQueryBuilder<Entity>,
     filterType?: string,
   ): SelectQueryBuilder<Entity> {
