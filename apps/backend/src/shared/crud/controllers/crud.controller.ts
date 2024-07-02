@@ -1,4 +1,15 @@
-import { Get, Post, Delete, Body, Param, Patch, Put } from '@nestjs/common';
+import {
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Patch,
+  Put,
+  Query,
+  ParseIntPipe,
+  DefaultValuePipe,
+} from '@nestjs/common';
 import type {
   IsCrudService,
   IsEntityModel,
@@ -8,6 +19,7 @@ import {
   ErrorHandlerResponse,
   SuccessHandlerResponse,
 } from '@definitions/crud.model';
+import DatabaseHandler from '@handlers/database.handler';
 
 export class CrudController<
   Entity extends IsEntityModel,
@@ -18,9 +30,25 @@ export class CrudController<
   constructor(private readonly service: Service) {}
 
   @Get()
-  async getAll(): Promise<Response<Entity>> {
+  async getAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+    @Query('orderField') orderField: string,
+    @Query('orderDirection') orderDirection: 'ASC' | 'DESC',
+    @Query('filters') filters: string,
+    @Query('relations') relations: string,
+  ): Promise<Response<Entity>> {
+    console.log('filters', filters);
     try {
-      const res = await this.service.getAll();
+      const options = DatabaseHandler.builderGetOptionsByQueryParams({
+        page,
+        pageSize,
+        orderField,
+        orderDirection,
+        filters,
+        relations,
+      });
+      const res = await this.service.getAll(options);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
       throw new ErrorHandlerResponse<Entity>();
@@ -28,9 +56,13 @@ export class CrudController<
   }
 
   @Get('single/:id')
-  async getOne(@Param('id') id: string): Promise<Response<Entity>> {
+  async getOne(
+    @Param('id') id: string,
+    @Query('relations') relations: string,
+  ): Promise<Response<Entity>> {
     try {
-      const res = await this.service.getOne(id);
+      const rels = DatabaseHandler.buildRelations(relations);
+      const res = await this.service.getOne(id, rels);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
       throw new ErrorHandlerResponse<Entity>();

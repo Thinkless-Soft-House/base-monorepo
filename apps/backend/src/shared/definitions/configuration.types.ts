@@ -12,7 +12,9 @@ export const configuration = () => ({
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
-    logging: process.env.DATABASE_LOGGING,
+    logging: process.env.DATABASE_LOGGING
+      ? process.env.DATABASE_LOGGING.split(',')
+      : false,
   },
   cors: {
     origin: process.env.CORS_ORIGIN || '*',
@@ -29,7 +31,7 @@ export const configuration = () => ({
         )
       : {},
   },
-  logger: process.env.LOGGER || ['verbose', 'advice', 'none'],
+  logger: process.env.LOGGER_LEVEL || false,
   defaultVersion: process.env.DEFAULT_VERSION || '1',
   jwt: {
     secret: process.env.JWT_SECRET || 'secret_default',
@@ -65,6 +67,8 @@ export const validationSchema = Joi.object({
   HELMET_CONTENT_SECURITY_POLICY_SPECIFIC_TRUST_DOMAINS: Joi.string()
     .custom(UtilsHandler.jsonValidator, 'JSON validation')
     .optional(),
-  LOGGER: Joi.string().valid('verbose', 'advice', 'none').default('verbose'),
+  LOGGER_LEVEL: Joi.string()
+    .valid('verbose', 'advice', 'none')
+    .default('verbose'),
   DEFAULT_VERSION: Joi.number().default('1'),
 });

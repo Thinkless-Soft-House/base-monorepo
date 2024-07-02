@@ -1,3 +1,4 @@
+import { UserEntity } from '@modules/users/schemas/users.entity';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
@@ -10,7 +11,8 @@ const PostgresOrmConfig = (
   username: configService.get('database.user'),
   password: configService.get('database.password'),
   database: configService.get('database.database'),
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  autoLoadEntities: true,
+  entities: [UserEntity],
   synchronize: configService.get('database.synchronize'),
   logging: configService.get('database.logging'),
 });

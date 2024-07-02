@@ -17,12 +17,15 @@ import { VersioningType } from '@nestjs/common';
 import getMorgan from '@config/morgan.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<'development' | 'stage' | 'production'>(
     'nodeEnv',
   );
   const loogerLevel = configService.get('logger');
+  console.log('Logger level:', loogerLevel);
   app.useLogger(
     loogerLevel === 'verbose'
       ? ['error', 'warn', 'log', 'debug', 'verbose', 'fatal']

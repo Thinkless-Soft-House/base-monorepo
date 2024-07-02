@@ -16,14 +16,43 @@ export interface IsEntityModel {
 }
 
 export interface IsCrudService<Entity> {
-  getAll(): GetAllServiceReponse<Entity>;
-  getOne(id: string): Entity;
-  createOne(createDto: any): Entity;
-  createMany(createManyDto: any[]): Entity[];
-  setOne(id: string, setDto: any): Entity;
-  setMany(setManyDto: any[]): Entity[];
-  updateOne(id: string, updateDto: any): Entity;
-  updateMany(updateManyDto: any[]): Entity[];
-  deleteOne(id: string): Entity;
-  deleteMany(ids: string[]): Entity[];
+  getAll(options: GetOptions): Promise<GetAllServiceReponse<Entity>>;
+  getOne(id: string, relations: Relation[]): Promise<Entity>;
+  createOne(createDto: any): Promise<Entity>;
+  createMany(createManyDto: any[]): Promise<Entity[]>;
+  setOne(id: string, setDto: any): Promise<Entity>;
+  setMany(setManyDto: any[]): Promise<Entity[]>;
+  updateOne(id: string, updateDto: any): Promise<Entity>;
+  updateMany(updateManyDto: any[]): Promise<Entity[]>;
+  deleteOne(id: string): Promise<Entity>;
+  deleteMany(ids: string[]): Promise<Entity[]>;
 }
+
+export type GetOptions = {
+  pagination?: Pagination;
+  order?: Order;
+  filters?: Filter[];
+  // relationpath:relationname query
+  relations?: Relation[];
+};
+
+export type Pagination = {
+  page: number;
+  size: number;
+};
+
+export type Order = {
+  field: string;
+  direction: 'ASC' | 'DESC';
+};
+
+export type Filter = {
+  field: string;
+  operator: 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'like' | 'in';
+  value: any;
+};
+
+export type Relation = {
+  path: string;
+  name: string;
+};

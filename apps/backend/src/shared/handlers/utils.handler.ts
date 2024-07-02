@@ -34,6 +34,6 @@ export default class UtilsHandler {
     }
 
     // If valid, return the array of values
-    return values;
+    return values.join(',');
   }
 }
