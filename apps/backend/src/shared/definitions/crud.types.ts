@@ -20,7 +20,7 @@ export interface IsCrudService<Entity> {
   getOne(id: string, relations: Relation[]): Promise<Entity>;
   createOne(createDto: any): Promise<Entity>;
   createMany(createManyDto: any[]): Promise<Entity[]>;
-  setOne(id: string, setDto: any): Promise<Entity>;
+  setOne(setDto: any): Promise<Entity>;
   setMany(setManyDto: any[]): Promise<Entity[]>;
   updateOne(id: string, updateDto: any): Promise<Entity>;
   updateMany(updateManyDto: any[]): Promise<Entity[]>;

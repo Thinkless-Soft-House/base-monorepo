@@ -15,6 +15,7 @@ import { DefaultExceptionFilter } from '@filters/default-exception.filter';
 import helmetConfig from '@config/helmet.config';
 import { VersioningType } from '@nestjs/common';
 import getMorgan from '@config/morgan.config';
+// import { CustomValidationPipe } from '@pipes/custom-validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -72,6 +73,23 @@ async function bootstrap() {
 
   // Exception Filter
   app.useGlobalFilters(new DefaultExceptionFilter());
+
+  // Exception Pipes
+  // const validationDTO = configService.get('validationDTO');
+  // const validationPipeConfiguration = {
+  //   transform: validationDTO.transform,
+  //   whitelist: validationDTO.whitelist,
+  //   forbidNonWhitelisted: validationDTO.forbidNonWhitelisted,
+  // };
+  // console.log('Validation Pipe Configuration:', validationPipeConfiguration);
+  // app.useGlobalPipes(new ValidationPipe(validationPipeConfiguration));
+  // app.useGlobalPipes(
+  //   new CustomValidationPipe({
+  //     transform: true,
+  //     whitelist: true,
+  //     forbidNonWhitelisted: true,
+  //   }),
+  // );
 
   // Versioning
   app.setGlobalPrefix('api');

@@ -20,6 +20,8 @@ import {
   SuccessHandlerResponse,
 } from '@definitions/crud.model';
 import DatabaseHandler from '@handlers/database.handler';
+import { CrudHandler } from '@handlers/crud.handler';
+import { ConfigService } from '@nestjs/config';
 
 export class CrudController<
   Entity extends IsEntityModel,
@@ -27,7 +29,20 @@ export class CrudController<
   CreateEntityDTO,
   UpdateEntityDTO,
 > {
-  constructor(private readonly service: Service) {}
+  protected validation = {};
+  constructor(
+    private readonly service: Service,
+    private readonly cs: ConfigService,
+    private readonly createEntityDtoClass: new () => CreateEntityDTO,
+    private readonly updateEntityDtoClass: new () => UpdateEntityDTO,
+  ) {
+    const validationDTO = cs.get('validationDTO');
+    this.validation = {
+      transform: validationDTO.transform,
+      whitelist: validationDTO.whitelist,
+      forbidNonWhitelisted: validationDTO.forbidNonWhitelisted,
+    };
+  }
 
   @Get()
   async getAll(
@@ -65,19 +80,24 @@ export class CrudController<
       const res = await this.service.getOne(id, rels);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 
   @Post('single')
-  async createOne(
-    @Body() createDto: CreateEntityDTO,
-  ): Promise<Response<Entity>> {
+  async createOne(@Body() createDto: any): Promise<Response<Entity>> {
     try {
+      await CrudHandler.validationDTO(
+        {
+          metatype: this.createEntityDtoClass,
+          object: createDto,
+        },
+        this.validation,
+      );
       const res = await this.service.createOne(createDto);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 
@@ -86,23 +106,34 @@ export class CrudController<
     @Body() createManyDto: CreateEntityDTO[],
   ): Promise<Response<Entity>> {
     try {
+      await CrudHandler.validationListDTO(
+        {
+          metatype: this.createEntityDtoClass,
+          object: createManyDto,
+        },
+        this.validation,
+      );
       const res = await this.service.createMany(createManyDto);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 
   @Put('single')
-  async setOne(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateEntityDTO,
-  ): Promise<Response<Entity>> {
+  async setOne(@Body() updateDto: UpdateEntityDTO): Promise<Response<Entity>> {
     try {
-      const res = await this.service.updateOne(id, updateDto);
+      await CrudHandler.validationDTO(
+        {
+          metatype: this.updateEntityDtoClass,
+          object: updateDto,
+        },
+        this.validation,
+      );
+      const res = await this.service.setOne(updateDto);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 
@@ -111,10 +142,17 @@ export class CrudController<
     @Body() updateManyDto: UpdateEntityDTO[],
   ): Promise<Response<Entity>> {
     try {
+      await CrudHandler.validationListDTO(
+        {
+          metatype: this.createEntityDtoClass,
+          object: updateManyDto,
+        },
+        this.validation,
+      );
       const res = await this.service.updateMany(updateManyDto);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
   @Patch('single/:id')
@@ -123,10 +161,17 @@ export class CrudController<
     @Body() updateDto: UpdateEntityDTO,
   ): Promise<Response<Entity>> {
     try {
+      await CrudHandler.validationDTO(
+        {
+          metatype: this.updateEntityDtoClass,
+          object: updateDto,
+        },
+        this.validation,
+      );
       const res = await this.service.updateOne(id, updateDto);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 
@@ -135,10 +180,17 @@ export class CrudController<
     @Body() updateManyDto: UpdateEntityDTO[],
   ): Promise<Response<Entity>> {
     try {
+      await CrudHandler.validationListDTO(
+        {
+          metatype: this.createEntityDtoClass,
+          object: updateManyDto,
+        },
+        this.validation,
+      );
       const res = await this.service.updateMany(updateManyDto);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 
@@ -148,7 +200,7 @@ export class CrudController<
       const res = await this.service.deleteOne(id);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 
@@ -158,7 +210,7 @@ export class CrudController<
       const res = await this.service.deleteMany(ids);
       return new SuccessHandlerResponse<Entity>(res);
     } catch (error) {
-      throw new ErrorHandlerResponse<Entity>();
+      throw CrudHandler.builderErrorHandler<Entity>(error);
     }
   }
 }

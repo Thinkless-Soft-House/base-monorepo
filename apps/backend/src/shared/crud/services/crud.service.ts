@@ -1,5 +1,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import dbErrors from '@database/errors';
+import { ErrorHandlerResponse } from '@definitions/crud.model';
 import type {
   GetAllServiceReponse,
   GetOptions,
@@ -9,7 +11,12 @@ import type {
 } from '@definitions/crud.types';
 import DatabaseHandler from '@handlers/database.handler';
 import { HttpException } from '@nestjs/common';
-import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  EntityManager,
+  QueryFailedError,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 
 export class CrudService<
   Entity extends IsEntityModel,
@@ -72,15 +79,27 @@ export class CrudService<
   }
 
   async createOne(createDto: CreateEntityDTO): Promise<Entity> {
-    return { id: '1', ...createDto } as unknown as Entity;
+    try {
+      const data = await this.repository
+        .createQueryBuilder(this.table)
+        .insert()
+        .values([createDto as any])
+        .execute();
+
+      console.log('insert result', data);
+
+      return { id: '1', ...createDto } as unknown as Entity;
+    } catch (error: any) {
+      throw DatabaseHandler.builderErrorHandler(error);
+    }
   }
 
   async createMany(createManyDto: CreateEntityDTO[]): Promise<Entity[]> {
     return createManyDto as unknown as Entity[];
   }
 
-  async setOne(id: string, setDto: UpdateEntityDTO): Promise<Entity> {
-    return { id, ...setDto } as unknown as Entity;
+  async setOne(setDto: UpdateEntityDTO): Promise<Entity> {
+    return { ...setDto } as unknown as Entity;
   }
 
   async setMany(setManyDto: UpdateEntityDTO[]) {
@@ -103,17 +122,14 @@ export class CrudService<
     return ids as unknown as Entity[];
   }
 
-  protected getHandler(
-    item: { column: string; value: any },
-    relations: Relation[],
-  ): SelectQueryBuilder<Entity> {
+  protected getHandler(relations: Relation[]): SelectQueryBuilder<Entity> {
     let data = this.repository.createQueryBuilder(this.table);
     data = DatabaseHandler.getRelations(this.table, data, relations);
 
     return data;
   }
 
-  // Target to override in the child class
+  // Target to override in the child class to create custom filters
   protected applyCustomFilters(
     query: SelectQueryBuilder<Entity>,
     filterType?: string,

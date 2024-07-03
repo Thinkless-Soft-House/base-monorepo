@@ -1,5 +1,8 @@
+import dbErrors from '@database/errors';
+import { ErrorHandlerResponse } from '@definitions/crud.model';
 import { GetOptions, Relation } from '@definitions/crud.types';
-import { SelectQueryBuilder } from 'typeorm';
+import { HttpException } from '@nestjs/common';
+import { QueryFailedError, SelectQueryBuilder } from 'typeorm';
 
 export default class DatabaseHandler {
   static builderGetOptionsByQueryParams(query: any): GetOptions {
@@ -150,5 +153,21 @@ export default class DatabaseHandler {
     });
 
     return queryBuilder;
+  }
+
+  static builderErrorHandler(error: any) {
+    if (error instanceof QueryFailedError) {
+      throw new ErrorHandlerResponse({
+        message: dbErrors.getErrorMessage(
+          (error as any).code,
+          (error as QueryFailedError).driverError.message,
+        ),
+        errorCode: dbErrors.getErrorCode((error as any).code),
+        statusCode: dbErrors.getErrorHttpStatus((error as any).code),
+      });
+    } else {
+      console.log('else');
+      throw new HttpException(error, 500);
+    }
   }
 }
