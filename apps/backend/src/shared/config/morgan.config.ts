@@ -20,6 +20,8 @@ export default function getMorgan(morgan: any): any {
       return chalk.yellow(method);
     } else if (method === 'DELETE') {
       return chalk.red(method);
+    } else if (method === 'PATCH') {
+      return chalk.magenta(method);
     }
     return method;
   });
@@ -65,8 +67,10 @@ export default function getMorgan(morgan: any): any {
       return chalk.yellow(req.originalUrl);
     } else if (method === 'DELETE') {
       return chalk.red(req.originalUrl);
+    } else if (method === 'PATCH') {
+      return chalk.magenta(req.originalUrl);
     }
-    return method;
+    return req.originalUrl;
   });
 
   //   // Definindo o token para o tamanho do conteúdo da resposta

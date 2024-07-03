@@ -49,4 +49,7 @@ export class UpdateUserDTO extends PartialType(CreateUserDTO) {
   @IsOptional()
   @IsNumber({}, { message: 'Id deve ser um número' })
   id: number;
+
+  @Transform(() => undefined)
+  password?: string;
 }

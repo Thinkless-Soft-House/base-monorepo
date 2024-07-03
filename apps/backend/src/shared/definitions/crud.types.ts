@@ -12,7 +12,7 @@ export interface Response<T> {
 }
 
 export interface IsEntityModel {
-  id: string;
+  id: number;
 }
 
 export interface IsUpdateEntityDTO {
@@ -21,15 +21,15 @@ export interface IsUpdateEntityDTO {
 
 export interface IsCrudService<Entity> {
   getAll(options: GetOptions): Promise<GetAllServiceReponse<Entity>>;
-  getOne(id: string, relations: Relation[]): Promise<Entity>;
+  getOne(id: number, relations: Relation[]): Promise<Entity>;
   createOne(createDto: any): Promise<Entity>;
   createMany(createManyDto: any[]): Promise<Entity[]>;
   setOne(setDto: any): Promise<Entity>;
   setMany(setManyDto: any[]): Promise<Entity[]>;
-  updateOne(id: string, updateDto: any): Promise<Entity>;
+  updateOne(id: number, updateDto: any): Promise<Entity>;
   updateMany(updateManyDto: any[]): Promise<Entity[]>;
-  deleteOne(id: string): Promise<Entity>;
-  deleteMany(ids: string[]): Promise<Entity[]>;
+  deleteOne(id: number): Promise<Entity>;
+  deleteMany(ids: number[]): Promise<Entity[]>;
 }
 
 export type GetOptions = {

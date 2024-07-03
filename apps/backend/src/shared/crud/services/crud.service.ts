@@ -7,7 +7,6 @@ import type {
   Relation,
 } from '@definitions/crud.types';
 import DatabaseHandler from '@handlers/database.handler';
-import { HttpException } from '@nestjs/common';
 import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 
 export class CrudService<
@@ -20,7 +19,10 @@ export class CrudService<
     public table: string,
     private manager: EntityManager,
     private repository: Repository<Entity>,
-  ) {}
+    protected options: any = {},
+  ) {
+    if (!options.id) options.id = 'id';
+  }
   async getAll(
     options: GetOptions = {},
   ): Promise<GetAllServiceReponse<Entity>> {
@@ -55,19 +57,30 @@ export class CrudService<
         count: countRes as number,
       };
     } catch (error) {
-      console.error(error);
-      throw new HttpException(error, 500);
+      throw DatabaseHandler.builderErrorHandler(error);
     }
   }
 
   async getOne(id: any, relations: Relation[]): Promise<Entity> {
-    let data = this.repository
-      .createQueryBuilder(this.table)
-      .andWhere('id = :id', { id });
+    try {
+      let data = this.repository
+        .createQueryBuilder(this.table)
+        .andWhere(`${this.options.id} = :id`, { id });
 
-    data = DatabaseHandler.getRelations(this.table, data, relations);
+      data = DatabaseHandler.getRelations(this.table, data, relations);
 
-    return await data.getOneOrFail();
+      const ret = await data.getOne();
+      if (!ret) {
+        throw DatabaseHandler.builderErrorHandler({
+          message: 'Entity not found',
+          statusCode: 404,
+        });
+      }
+
+      return { ...ret } as unknown as Entity;
+    } catch (error) {
+      throw DatabaseHandler.builderErrorHandler(error);
+    }
   }
 
   async createOne(createDto: CreateEntityDTO): Promise<Entity> {
@@ -113,8 +126,15 @@ export class CrudService<
       if (action === 'UPDATE') {
         const find = await this.repository
           .createQueryBuilder(this.table)
-          .where('id = :id', { id: setDto.id })
-          .getOneOrFail();
+          .where(`${this.options.id} = :id`, { id: setDto.id })
+          .getOne();
+
+        if (!find) {
+          throw DatabaseHandler.builderErrorHandler({
+            message: 'Entity not found',
+            statusCode: 404,
+          });
+        }
 
         item = { ...find, ...setDto };
       }
@@ -125,7 +145,7 @@ export class CrudService<
           .createQueryBuilder(this.table)
           .update()
           .set({ ...(item as any), updatedAt: new Date() })
-          .where('id = :id', { id: item.id })
+          .where(`${this.options.id} = :id`, { id: item.id })
           .execute();
       if (action === 'CREATE')
         await this.repository
@@ -147,22 +167,45 @@ export class CrudService<
     return items as unknown as Entity[];
   }
 
-  async updateOne(id: string, updateDto: UpdateEntityDTO): Promise<Entity> {
-    return { id, ...updateDto } as unknown as Entity;
+  async updateOne(id: number, updateDto: UpdateEntityDTO): Promise<Entity> {
+    await this.repository
+      .createQueryBuilder(this.table)
+      .update()
+      .set({ ...(updateDto as any), updatedAt: new Date() })
+      .where(`${this.options.id} = :id`, { id })
+      .execute();
+
+    const item = await this.repository
+      .createQueryBuilder(this.table)
+      .where(`${this.options.id} = :id`, { id })
+      .getOneOrFail();
+    return { ...item } as unknown as Entity;
   }
 
   async updateMany(updateManyDto: UpdateEntityDTO[]) {
-    return updateManyDto as unknown as Entity[];
+    const p$ = updateManyDto.map((item) => this.updateOne(item.id, item));
+    const items = await Promise.all(p$);
+
+    return items as unknown as Entity[];
   }
 
-  async deleteOne(id: string) {
+  async deleteOne(id: number) {
+    await this.repository
+      .createQueryBuilder(this.table)
+      .delete()
+      .where(`${this.options.id} = :id`, { id })
+      .execute();
     return { id } as Entity;
   }
 
-  async deleteMany(ids: string[]) {
-    return ids as unknown as Entity[];
+  async deleteMany(ids: number[]) {
+    const p$ = ids.map((id) => this.deleteOne(id));
+    const items = await Promise.all(p$);
+
+    return items as unknown as Entity[];
   }
 
+  // Used to create new queries with so system rules and filters
   protected getHandler(relations: Relation[]): SelectQueryBuilder<Entity> {
     let data = this.repository.createQueryBuilder(this.table);
     data = DatabaseHandler.getRelations(this.table, data, relations);

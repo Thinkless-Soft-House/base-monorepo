@@ -75,7 +75,7 @@ export class CrudController<
 
   @Get('single/:id')
   async getOne(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Query('relations') relations: string,
   ): Promise<Response<Entity>> {
     try {
@@ -160,7 +160,7 @@ export class CrudController<
   }
   @Patch('single/:id')
   async updateOne(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateEntityDTO,
   ): Promise<Response<Entity>> {
     try {
@@ -185,7 +185,7 @@ export class CrudController<
     try {
       const obj = await CrudHandler.validationListDTO(
         {
-          metatype: this.createEntityDtoClass,
+          metatype: this.updateEntityDtoClass,
           object: updateManyDto,
         },
         this.validation,
@@ -198,7 +198,9 @@ export class CrudController<
   }
 
   @Delete('single/:id')
-  async deleteOne(@Param('id') id: string): Promise<Response<Entity>> {
+  async deleteOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Response<Entity>> {
     try {
       const res = await this.service.deleteOne(id);
       return new SuccessHandlerResponse<Entity>(res);
@@ -208,7 +210,7 @@ export class CrudController<
   }
 
   @Delete('many')
-  async deleteMany(@Body() ids: string[]): Promise<Response<Entity>> {
+  async deleteMany(@Body() ids: number[]): Promise<Response<Entity>> {
     try {
       const res = await this.service.deleteMany(ids);
       return new SuccessHandlerResponse<Entity>(res);

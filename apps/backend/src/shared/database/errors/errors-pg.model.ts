@@ -189,12 +189,22 @@ const pgErrorCodes: { [key: string]: PgErrorMapping } = {
     httpStatus: HttpStatus.FORBIDDEN,
     errorCode: HttpErrorCode.INSUFFICIENT_PRIVILEGE,
   },
+  '42703': {
+    message: 'Coluna indefinida',
+    httpStatus: HttpStatus.BAD_REQUEST,
+    errorCode: HttpErrorCode.UNDEFINED_COLUMN,
+    detailedMessages: {
+      'column "(.*)" does not exist': 'A coluna $1 não existe.',
+    },
+  },
 };
 
 function getDetailedErrorMessage(
   errorMapping: PgErrorMapping,
   errorMessage: string,
 ): string {
+  console.log('errorMapping', errorMapping);
+  console.log('errorMessage', errorMessage);
   if (errorMapping.detailedMessages) {
     for (const pattern in errorMapping.detailedMessages) {
       const regex = new RegExp(pattern);

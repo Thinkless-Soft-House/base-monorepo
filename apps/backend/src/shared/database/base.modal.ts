@@ -6,7 +6,7 @@ import {
 } from 'typeorm';
 
 export interface BaseModel {
-  id: string;
+  id: number;
 
   createdAt: Date;
   updatedAt: Date;
@@ -14,7 +14,7 @@ export interface BaseModel {
 
 export class MyBaseEntity extends BaseEntity implements BaseModel {
   @PrimaryGeneratedColumn()
-  id: string;
+  id: number;
 
   @CreateDateColumn()
   createdAt: Date;

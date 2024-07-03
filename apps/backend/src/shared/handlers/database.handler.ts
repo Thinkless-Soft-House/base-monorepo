@@ -1,8 +1,8 @@
 import dbErrors from '@database/errors';
 import { ErrorHandlerResponse } from '@definitions/http.types';
 import { GetOptions, Relation } from '@definitions/crud.types';
-import { HttpException } from '@nestjs/common';
 import { QueryFailedError, SelectQueryBuilder } from 'typeorm';
+import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 
 export default class DatabaseHandler {
   static builderGetOptionsByQueryParams(query: any): GetOptions {
@@ -156,7 +156,9 @@ export default class DatabaseHandler {
   }
 
   static builderErrorHandler(error: any) {
-    if (error instanceof QueryFailedError) {
+    if (error instanceof ErrorHandlerResponse) {
+      throw error;
+    } else if (error instanceof QueryFailedError) {
       throw new ErrorHandlerResponse({
         message: dbErrors.getErrorMessage(
           (error as any).code,
@@ -166,8 +168,15 @@ export default class DatabaseHandler {
         statusCode: dbErrors.getErrorHttpStatus((error as any).code),
       });
     } else {
-      console.log('else');
-      throw new HttpException(error, 500);
+      console.log('else', error);
+      throw new ErrorHandlerResponse({
+        message: error.message || error.response || 'Internal Server Error',
+        errorCode:
+          error.statusCode || error.status
+            ? HttpErrorByCode[error.statusCode || error.status]
+            : 'UNKNOWN_ERROR',
+        statusCode: error.statusCode || error.status || 500,
+      });
     }
   }
 }
