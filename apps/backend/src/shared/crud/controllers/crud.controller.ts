@@ -23,6 +23,7 @@ import {
 import DatabaseHandler from '@handlers/database.handler';
 import { CrudHandler } from '@handlers/crud.handler';
 import { ConfigService } from '@nestjs/config';
+import { CacheList } from '@decorators/cache.decorator';
 
 export class CrudController<
   Entity extends IsEntityModel,
@@ -48,6 +49,7 @@ export class CrudController<
   }
 
   @Get()
+  @CacheList()
   async getAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,

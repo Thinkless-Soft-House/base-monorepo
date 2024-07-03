@@ -63,6 +63,7 @@ export class CrudService<
 
   async getOne(id: any, relations: Relation[]): Promise<Entity> {
     try {
+      console.log('Hit here!');
       let data = this.repository
         .createQueryBuilder(this.table)
         .andWhere(`${this.options.id} = :id`, { id });

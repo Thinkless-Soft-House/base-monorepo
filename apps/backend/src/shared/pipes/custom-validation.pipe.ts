@@ -9,6 +9,7 @@ import { validateOrReject, ValidationError } from 'class-validator';
 
 @Injectable()
 export class CustomValidationPipe implements PipeTransform<any> {
+  // TODO: Implemnt Inject ConfigService to get the configuration
   private configuration = {
     whitelist: true,
     forbidNonWhitelisted: true,

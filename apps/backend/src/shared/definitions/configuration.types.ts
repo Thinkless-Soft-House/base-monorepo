@@ -44,6 +44,18 @@ export const configuration = () => ({
     forbidNonWhitelisted:
       process.env.VALIDATION_DTO_FORBID_NON_WHITELISTED === 'true',
   },
+
+  cache: {
+    cached: process.env.CACHED === 'true',
+    type: process.env.CACHE_TYPE || 'memory',
+    ttl: parseInt(process.env.CACHE_TTL, 10) || 10000,
+    max: parseInt(process.env.CACHE_MAX, 10) || 50,
+    redis: {
+      host: process.env.CACHE_REDIS_HOST,
+      port: parseInt(process.env.CACHE_REDIS_PORT, 10) || 6379,
+      password: process.env.CACHE_REDIS_PASSWORD,
+    },
+  },
 });
 
 export const validationSchema = Joi.object({
@@ -91,4 +103,25 @@ export const validationSchema = Joi.object({
   JWT_SECRET: Joi.string().optional(),
   JWT_IGNORE_EXPIRATION: Joi.boolean().default(false),
   JWT_TTL: Joi.string().default('7d'),
+
+  // Cache
+  CACHED: Joi.boolean().default(false),
+  CACHE_TYPE: Joi.string().valid('redis', 'memory').default('memory'),
+  CACHE_TTL: Joi.number().default(10000),
+  CACHE_MAX: Joi.number().default(50),
+  CACHE_REDIS_HOST: Joi.string().when('CACHE_TYPE', {
+    is: 'redis',
+    then: Joi.required(),
+    otherwise: Joi.optional(),
+  }),
+  CACHE_REDIS_PORT: Joi.number().when('CACHE_TYPE', {
+    is: 'redis',
+    then: Joi.required(),
+    otherwise: Joi.optional(),
+  }),
+  CACHE_REDIS_PASSWORD: Joi.string().when('CACHE_TYPE', {
+    is: 'redis',
+    then: Joi.required(),
+    otherwise: Joi.optional(),
+  }),
 });

@@ -21,6 +21,8 @@ import { JwtAuthGuard } from '@guards/passport-jwt.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import OrmConfig from '@database/config.database';
+import { CacheModule } from '@nestjs/cache-manager';
+import cacheConfig from '@config/cache.config';
 
 const allModules = [AuthModule];
 
@@ -53,6 +55,13 @@ const allModules = [AuthModule];
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => OrmConfig(configService),
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) =>
+        cacheConfig(configService),
     }),
     ...allModules,
     UsersModule,
