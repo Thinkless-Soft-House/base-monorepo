@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ErrorHandlerResponse } from '@definitions/crud.model';
+import { ErrorHandlerResponse, HttpErrorCode } from '@definitions/http.types';
 import { plainToInstance } from 'class-transformer';
 import {
   ValidationError,
@@ -44,7 +44,7 @@ export class CrudHandler {
       throw new ErrorHandlerResponse<T>({
         message: messageError,
         statusCode: 400,
-        errorCode: 'VALIDATION_ERROR',
+        errorCode: HttpErrorCode.VALIDATION_ERROR,
       });
     } else if (isArray(error) && error[0] instanceof ValidationError) {
       const messageError = (error as ValidationError[])
@@ -55,7 +55,7 @@ export class CrudHandler {
       throw new ErrorHandlerResponse<T>({
         message: messageError,
         statusCode: 400,
-        errorCode: 'VALIDATION_ERROR',
+        errorCode: HttpErrorCode.VALIDATION_ERROR,
       });
     } else {
       throw new ErrorHandlerResponse<T>();

@@ -18,7 +18,7 @@ import type {
 import {
   ErrorHandlerResponse,
   SuccessHandlerResponse,
-} from '@definitions/crud.model';
+} from '@definitions/http.types';
 import DatabaseHandler from '@handlers/database.handler';
 import { CrudHandler } from '@handlers/crud.handler';
 import { ConfigService } from '@nestjs/config';

@@ -1,7 +1,3 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import dbErrors from '@database/errors';
-import { ErrorHandlerResponse } from '@definitions/crud.model';
 import type {
   GetAllServiceReponse,
   GetOptions,
@@ -11,12 +7,7 @@ import type {
 } from '@definitions/crud.types';
 import DatabaseHandler from '@handlers/database.handler';
 import { HttpException } from '@nestjs/common';
-import {
-  EntityManager,
-  QueryFailedError,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 
 export class CrudService<
   Entity extends IsEntityModel,
@@ -132,6 +123,7 @@ export class CrudService<
   // Target to override in the child class to create custom filters
   protected applyCustomFilters(
     query: SelectQueryBuilder<Entity>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     filterType?: string,
   ): SelectQueryBuilder<Entity> {
     return query;

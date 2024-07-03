@@ -11,7 +11,7 @@ import {
   ErrorHandlerResponse,
   HttpErrorCode,
   defaultErrorCode,
-} from '../definitions/crud.model';
+} from '../definitions/http.types';
 
 @Catch()
 export class DefaultExceptionFilter implements ExceptionFilter {

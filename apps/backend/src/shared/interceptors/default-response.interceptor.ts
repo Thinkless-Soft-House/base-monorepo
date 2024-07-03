@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { SuccessHandlerResponse } from '@definitions/crud.model';
+import { SuccessHandlerResponse } from '@definitions/http.types';
 
 @Injectable()
 export class TransformResponseInterceptor implements NestInterceptor {

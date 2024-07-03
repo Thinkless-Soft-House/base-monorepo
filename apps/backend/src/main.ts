@@ -2,11 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 
 import helmet from 'helmet';
-// import * as chalk from 'chalk';
 import * as morgan from 'morgan';
 import * as cookieParser from 'cookie-parser';
-
-// import { formatInTimeZone } from 'date-fns-tz';
 
 import { AppModule } from './app.module';
 import { corsConfig } from '@config/cors.config';
@@ -15,12 +12,10 @@ import { DefaultExceptionFilter } from '@filters/default-exception.filter';
 import helmetConfig from '@config/helmet.config';
 import { VersioningType } from '@nestjs/common';
 import getMorgan from '@config/morgan.config';
-// import { CustomValidationPipe } from '@pipes/custom-validation.pipe';
+import { CustomValidationPipe } from '@pipes/custom-validation.pipe';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    bufferLogs: true,
-  });
+  const app = await NestFactory.create(AppModule, {});
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<'development' | 'stage' | 'production'>(
     'nodeEnv',
@@ -74,22 +69,15 @@ async function bootstrap() {
   // Exception Filter
   app.useGlobalFilters(new DefaultExceptionFilter());
 
-  // Exception Pipes
-  // const validationDTO = configService.get('validationDTO');
-  // const validationPipeConfiguration = {
-  //   transform: validationDTO.transform,
-  //   whitelist: validationDTO.whitelist,
-  //   forbidNonWhitelisted: validationDTO.forbidNonWhitelisted,
-  // };
-  // console.log('Validation Pipe Configuration:', validationPipeConfiguration);
-  // app.useGlobalPipes(new ValidationPipe(validationPipeConfiguration));
-  // app.useGlobalPipes(
-  //   new CustomValidationPipe({
-  //     transform: true,
-  //     whitelist: true,
-  //     forbidNonWhitelisted: true,
-  //   }),
-  // );
+  // Pipes
+  const validationDTO = configService.get('validationDTO');
+  const validationPipeConfiguration = {
+    transform: validationDTO.transform,
+    whitelist: validationDTO.whitelist,
+    forbidNonWhitelisted: validationDTO.forbidNonWhitelisted,
+  };
+  console.log('Validation Pipe Configuration:', validationPipeConfiguration);
+  app.useGlobalPipes(new CustomValidationPipe(validationPipeConfiguration));
 
   // Versioning
   app.setGlobalPrefix('api');

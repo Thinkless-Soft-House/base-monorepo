@@ -1,5 +1,5 @@
 import dbErrors from '@database/errors';
-import { ErrorHandlerResponse } from '@definitions/crud.model';
+import { ErrorHandlerResponse } from '@definitions/http.types';
 import { GetOptions, Relation } from '@definitions/crud.types';
 import { HttpException } from '@nestjs/common';
 import { QueryFailedError, SelectQueryBuilder } from 'typeorm';
