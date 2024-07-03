@@ -41,10 +41,14 @@ export class CustomCacheInterceptor implements NestInterceptor {
       console.log('Cache disabled');
       return next.handle();
     }
-    if (this.reflector.get<boolean>(NO_CACHE_METADATA, context.getHandler()))
+    if (this.reflector.get<boolean>(NO_CACHE_METADATA, context.getHandler())) {
+      console.log('Cache disabled');
       return next.handle();
-    if (this.reflector.get<boolean>(NO_CACHE_METADATA, context.getClass()))
+    }
+    if (this.reflector.get<boolean>(NO_CACHE_METADATA, context.getClass())) {
+      console.log('Cache disabled');
       return next.handle();
+    }
 
     if (this.cacheMap.size === 0) {
       this.flushCache();
@@ -54,7 +58,6 @@ export class CustomCacheInterceptor implements NestInterceptor {
     const { method, url, params, query } = request;
 
     if (method !== 'GET') {
-      console.log('context =>', context.getClass().name);
       this.invalidateListCaches(context);
       return next.handle();
     }
@@ -73,13 +76,12 @@ export class CustomCacheInterceptor implements NestInterceptor {
       cacheKey = `${isListRoute ? 'list-' + context.getClass().name + '-' : ''}${method}-${url}-${JSON.stringify(params)}-${JSON.stringify(
         query,
       )}`;
-    console.log('cacheKey', cacheKey);
 
     // Check if cache exists
     return from(this.cacheManager.get<string>(cacheKey)).pipe(
       switchMap((cached) => {
         if (cached) {
-          console.log('Cache exists, returning => ', cached);
+          console.log('Cache!');
 
           return of(
             plainToInstance(SuccessHandlerResponse, JSON.parse(cached)),
@@ -89,7 +91,6 @@ export class CustomCacheInterceptor implements NestInterceptor {
           return next.handle().pipe(
             tap(async (response) => {
               // Create new cache
-              console.log('Cache does not exist, creating...');
               await this.cacheManager.set(
                 cacheKey,
                 JSON.stringify(response),
