@@ -6,9 +6,7 @@ export class UserEntity extends MyBaseEntity {
   @Column()
   name: string;
 
-  @Index({
-    unique: true,
-  })
+  @Index('idx_user_email_unique', { unique: true })
   @Column()
   email: string;
 

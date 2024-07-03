@@ -3,6 +3,7 @@ import type {
   GetOptions,
   IsCrudService,
   IsEntityModel,
+  IsUpdateEntityDTO,
   Relation,
 } from '@definitions/crud.types';
 import DatabaseHandler from '@handlers/database.handler';
@@ -12,7 +13,7 @@ import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 export class CrudService<
   Entity extends IsEntityModel,
   CreateEntityDTO,
-  UpdateEntityDTO,
+  UpdateEntityDTO extends IsUpdateEntityDTO,
 > implements IsCrudService<Entity>
 {
   constructor(
@@ -78,23 +79,72 @@ export class CrudService<
         .execute();
 
       console.log('insert result', data);
+      console.log('insert result createDTO', createDto);
 
-      return { id: '1', ...createDto } as unknown as Entity;
+      return { ...createDto } as unknown as Entity;
     } catch (error: any) {
       throw DatabaseHandler.builderErrorHandler(error);
     }
   }
 
   async createMany(createManyDto: CreateEntityDTO[]): Promise<Entity[]> {
-    return createManyDto as unknown as Entity[];
+    try {
+      await this.repository
+        .createQueryBuilder(this.table)
+        .insert()
+        .values(createManyDto as any[])
+        .execute();
+
+      return [...createManyDto] as unknown as Entity[];
+    } catch (error: any) {
+      console.error(error);
+      throw DatabaseHandler.builderErrorHandler(error);
+    }
   }
 
   async setOne(setDto: UpdateEntityDTO): Promise<Entity> {
-    return { ...setDto } as unknown as Entity;
+    try {
+      let action = 'CREATE';
+      if (setDto.id) {
+        action = 'UPDATE';
+      }
+
+      let item = { ...setDto };
+      if (action === 'UPDATE') {
+        const find = await this.repository
+          .createQueryBuilder(this.table)
+          .where('id = :id', { id: setDto.id })
+          .getOneOrFail();
+
+        item = { ...find, ...setDto };
+      }
+      console.log('item', item);
+
+      if (action === 'UPDATE')
+        await this.repository
+          .createQueryBuilder(this.table)
+          .update()
+          .set({ ...(item as any), updatedAt: new Date() })
+          .where('id = :id', { id: item.id })
+          .execute();
+      if (action === 'CREATE')
+        await this.repository
+          .createQueryBuilder(this.table)
+          .insert()
+          .values([item as any])
+          .execute();
+
+      return { ...item } as unknown as Entity;
+    } catch (error: any) {
+      throw DatabaseHandler.builderErrorHandler(error);
+    }
   }
 
   async setMany(setManyDto: UpdateEntityDTO[]) {
-    return setManyDto as unknown as Entity[];
+    const p$ = setManyDto.map((item) => this.setOne(item));
+    const items = await Promise.all(p$);
+
+    return items as unknown as Entity[];
   }
 
   async updateOne(id: string, updateDto: UpdateEntityDTO): Promise<Entity> {

@@ -76,7 +76,6 @@ async function bootstrap() {
     whitelist: validationDTO.whitelist,
     forbidNonWhitelisted: validationDTO.forbidNonWhitelisted,
   };
-  console.log('Validation Pipe Configuration:', validationPipeConfiguration);
   app.useGlobalPipes(new CustomValidationPipe(validationPipeConfiguration));
 
   // Versioning

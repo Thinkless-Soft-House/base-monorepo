@@ -8,7 +8,7 @@ import {
   validateOrReject,
 } from 'class-validator';
 
-import { concat } from 'lodash';
+import { concat, omitBy, isUndefined } from 'lodash';
 
 const validationDefaultConfiguration = {
   whitelist: true,
@@ -30,6 +30,7 @@ class ValidationErrorWithIndex extends ValidationError {
 
 export class CrudHandler {
   static builderErrorHandler<T>(error: any) {
+    console.log('error', error);
     if (error instanceof ErrorHandlerResponse) {
       throw error;
     } else if (isArray(error) && error[0] instanceof ValidationErrorWithIndex) {
@@ -66,8 +67,10 @@ export class CrudHandler {
     val: { metatype: T; object: any },
     customConfiguration: ValidatorOptions = {},
   ) {
-    const { metatype, object } = val;
-    const entity = plainToInstance(metatype as any, object);
+    const { metatype } = val;
+    let { object } = val;
+    object = omitBy(object, isUndefined);
+    const entity = plainToInstance(metatype as any, object, {});
 
     const configuration = Object.assign(
       validationDefaultConfiguration,
@@ -76,7 +79,7 @@ export class CrudHandler {
     await validateOrReject(entity, configuration);
 
     if (configuration.transform) {
-      return object;
+      return entity;
     }
     return object;
   }
@@ -92,13 +95,19 @@ export class CrudHandler {
       customConfiguration,
     );
     for (const iterator of object) {
-      const entity = plainToInstance(metatype as any, iterator);
+      const entity = plainToInstance(
+        metatype as any,
+        omitBy(iterator, isUndefined),
+      );
 
       try {
-        await validateOrReject(entity, {
-          ...configuration,
-          forbidNonWhitelisted: false,
-        } as ValidatorOptions);
+        await validateOrReject(
+          entity as any,
+          {
+            ...configuration,
+            forbidNonWhitelisted: false,
+          } as ValidatorOptions,
+        );
       } catch (error) {
         validationsErrors.push(
           error.map(
@@ -108,10 +117,10 @@ export class CrudHandler {
         );
       }
 
-      if (configuration.transform) transformed.push(iterator);
+      if (configuration.transform) transformed.push(entity);
     }
 
-    if (validationsErrors) {
+    if (validationsErrors.length > 0) {
       validationsErrors = concat(...validationsErrors);
       throw validationsErrors;
     }

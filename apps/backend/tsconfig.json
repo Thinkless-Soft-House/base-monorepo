@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": false,
 
     "paths": {
+      // Shared
       "@crud/*": ["src/shared/crud/*"],
       "@definitions/*": ["src/shared/definitions/*"],
       "@config/*": ["src/shared/config/*"],
@@ -31,6 +32,7 @@
       "@decorators/*": ["src/shared/decorators/*"],
       "@database/*": ["src/shared/database/*"],
 
+      // Modules
       "@modules/*": ["src/modules/*"]
     }
   }

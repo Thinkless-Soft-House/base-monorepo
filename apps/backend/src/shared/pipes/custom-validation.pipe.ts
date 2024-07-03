@@ -24,13 +24,7 @@ export class CustomValidationPipe implements PipeTransform<any> {
   async transform(value: any, argument: ArgumentMetadata) {
     const { metatype } = argument;
 
-    console.log('Iniciando pipe de validação', argument);
     if (!metatype || this.isPrimitive(metatype)) {
-      console.log(
-        'Metatype não encontrado ou não necessita validação',
-        metatype,
-        typeof metatype,
-      );
       return value;
     }
 

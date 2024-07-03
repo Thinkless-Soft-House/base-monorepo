@@ -15,6 +15,10 @@ export interface IsEntityModel {
   id: string;
 }
 
+export interface IsUpdateEntityDTO {
+  id?: number;
+}
+
 export interface IsCrudService<Entity> {
   getAll(options: GetOptions): Promise<GetAllServiceReponse<Entity>>;
   getOne(id: string, relations: Relation[]): Promise<Entity>;
