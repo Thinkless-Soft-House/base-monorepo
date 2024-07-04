@@ -12,6 +12,7 @@ import {
   HttpErrorCode,
   defaultErrorCode,
 } from '../definitions/http.types';
+import { ValidationConfig } from '@config/validation.config';
 
 @Catch()
 export class DefaultExceptionFilter implements ExceptionFilter {
@@ -28,6 +29,8 @@ export class DefaultExceptionFilter implements ExceptionFilter {
         error: exception.error.getResponse(),
       });
       return;
+    } else if (ValidationConfig.isValidationError(exception)) {
+      throw ValidationConfig.handleError<any>(exception);
     }
 
     // Caso contrário, formata a exceção de acordo com ErrorHandlerResponse

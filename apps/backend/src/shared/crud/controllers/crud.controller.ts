@@ -26,6 +26,7 @@ import { CrudHandler } from '@handlers/crud.handler';
 import { ConfigService } from '@nestjs/config';
 import { CacheList } from '@decorators/cache.decorator';
 import { TransactionInterceptor } from '@interceptors/transaction.interceptor';
+import { ValidationConfig } from '@config/validation.config';
 
 export class CrudController<
   Entity extends IsEntityModel,
@@ -94,7 +95,7 @@ export class CrudController<
   @Post('single')
   async createOne(@Body() createDto: any): Promise<Response<Entity>> {
     try {
-      const obj = await CrudHandler.validationDTO(
+      const obj = await ValidationConfig.validationDTO(
         {
           metatype: this.createEntityDtoClass,
           object: createDto,
@@ -113,7 +114,7 @@ export class CrudController<
     @Body() createManyDto: CreateEntityDTO[],
   ): Promise<Response<Entity>> {
     try {
-      const obj = await CrudHandler.validationListDTO(
+      const obj = await ValidationConfig.validationListDTO(
         {
           metatype: this.createEntityDtoClass,
           object: createManyDto,
@@ -130,7 +131,7 @@ export class CrudController<
   @Put('single')
   async setOne(@Body() updateDto: UpdateEntityDTO): Promise<Response<Entity>> {
     try {
-      const obj = await CrudHandler.validationDTO(
+      const obj = await ValidationConfig.validationDTO(
         {
           metatype: this.setEntityDtoClass,
           object: updateDto,
@@ -149,7 +150,7 @@ export class CrudController<
     @Body() updateManyDto: UpdateEntityDTO[],
   ): Promise<Response<Entity>> {
     try {
-      const obj = await CrudHandler.validationListDTO(
+      const obj = await ValidationConfig.validationListDTO(
         {
           metatype: this.setEntityDtoClass,
           object: updateManyDto,
@@ -168,7 +169,7 @@ export class CrudController<
     @Body() updateDto: UpdateEntityDTO,
   ): Promise<Response<Entity>> {
     try {
-      const obj = await CrudHandler.validationDTO(
+      const obj = await ValidationConfig.validationDTO(
         {
           metatype: this.updateEntityDtoClass,
           object: updateDto,
@@ -187,7 +188,7 @@ export class CrudController<
     @Body() updateManyDto: UpdateEntityDTO[],
   ): Promise<Response<Entity>> {
     try {
-      const obj = await CrudHandler.validationListDTO(
+      const obj = await ValidationConfig.validationListDTO(
         {
           metatype: this.updateEntityDtoClass,
           object: updateManyDto,

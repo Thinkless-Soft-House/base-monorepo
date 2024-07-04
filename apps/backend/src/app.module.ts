@@ -22,6 +22,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import OrmConfig from '@database/config.database';
 import { CacheModule } from '@nestjs/cache-manager';
+import { PhotosModule } from './modules/photos/photos.module';
 import cacheConfig from '@config/cache.config';
 
 const allModules = [AuthModule];
@@ -65,6 +66,7 @@ const allModules = [AuthModule];
     }),
     ...allModules,
     UsersModule,
+    PhotosModule,
   ],
   controllers: [AppController, AppNewController],
   providers: [

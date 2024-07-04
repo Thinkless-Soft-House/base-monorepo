@@ -1,14 +1,17 @@
 import {
+  IsArray,
   IsEmail,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
 import { User } from './users.model';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
+import { CreatePhotoDTO } from '@modules/photos/schemas/photos.dto';
 
 export class CreateUserDTO implements Partial<User> {
   @IsString({ message: 'Nome deve ser uma string' })
@@ -23,6 +26,12 @@ export class CreateUserDTO implements Partial<User> {
   @IsNotEmpty({ message: 'Senha é obrigatória' })
   @Transform(({ value }) => value.trim())
   password: string;
+
+  @IsArray({ message: 'Fotos deve ser um array' })
+  @ValidateNested({ each: true, message: 'Fotos inválidas' })
+  @Type(() => CreatePhotoDTO)
+  @IsOptional()
+  photos?: CreatePhotoDTO[];
 }
 
 export class SetUserDTO {
