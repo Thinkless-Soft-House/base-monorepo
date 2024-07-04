@@ -2,6 +2,7 @@ import { CacheOptions } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { StoreConfig } from 'cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { createClient, RedisClientOptions } from 'redis';
 
 export default async function cacheConfig(
   cs: ConfigService,
@@ -14,23 +15,42 @@ export default async function cacheConfig(
   }
 
   if (cache.type === 'redis') {
-    const storeConfig = {
+    const storeConfig: RedisClientOptions & StoreConfig = {
       socket: {
         host: cache.redis.host,
         port: cache.redis.port,
       },
+
       password: cache.redis.password,
     };
 
-    return {
-      store: async () => redisStore(storeConfig) as any,
-      ttl: cache.ttl, // default TTL in seconds
-      max: cache.max, // maximum number of items in cache
-    };
+    const client = createClient(storeConfig);
+
+    try {
+      await client.connect();
+      await client.ping();
+      await client.disconnect();
+
+      console.log('Redis connection successful');
+      return {
+        store: async () => redisStore(storeConfig) as any,
+        ttl: cache.ttl,
+        max: cache.max,
+      };
+    } catch (error) {
+      console.error(
+        'Redis connection failed, falling back to in-memory cache',
+        error,
+      );
+      return {
+        ttl: cache.ttl,
+        max: cache.max,
+      };
+    }
   }
 
   return {
-    ttl: cache.ttl, // default TTL in seconds
-    max: cache.max, // maximum number of items in cache
+    ttl: cache.ttl,
+    max: cache.max,
   };
 }
