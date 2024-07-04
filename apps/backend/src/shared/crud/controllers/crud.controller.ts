@@ -9,6 +9,7 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import type {
   IsCrudService,
@@ -24,6 +25,7 @@ import DatabaseHandler from '@handlers/database.handler';
 import { CrudHandler } from '@handlers/crud.handler';
 import { ConfigService } from '@nestjs/config';
 import { CacheList } from '@decorators/cache.decorator';
+import { TransactionInterceptor } from '@interceptors/transaction.interceptor';
 
 export class CrudController<
   Entity extends IsEntityModel,
@@ -50,6 +52,7 @@ export class CrudController<
 
   @Get()
   @CacheList()
+  @UseInterceptors(TransactionInterceptor)
   async getAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
@@ -58,7 +61,6 @@ export class CrudController<
     @Query('filters') filters: string,
     @Query('relations') relations: string,
   ): Promise<Response<Entity>> {
-    console.log('filters', filters);
     try {
       const options = DatabaseHandler.builderGetOptionsByQueryParams({
         page,

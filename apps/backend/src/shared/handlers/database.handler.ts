@@ -32,8 +32,6 @@ export default class DatabaseHandler {
     if (query.relations) {
       getOptions.relations = this.buildRelations(query.relations);
     }
-
-    console.log('getOptions after query builder obj', getOptions);
     return getOptions;
   }
 
@@ -53,7 +51,6 @@ export default class DatabaseHandler {
     config: { idColumn?: string } = {},
   ) {
     const parsedGetOptions = getOptions;
-    console.log('getOptions before', getOptions);
 
     if (!getOptions.pagination) {
       parsedGetOptions.pagination = {

@@ -14,7 +14,10 @@ export class UsersController extends CrudController<
   SetUserDTO,
   UpdateUserDTO
 > {
-  constructor(usersService: UsersService, cs: ConfigService) {
+  constructor(
+    private usersService: UsersService,
+    cs: ConfigService,
+  ) {
     super(usersService, cs, CreateUserDTO, SetUserDTO, UpdateUserDTO);
   }
 }
