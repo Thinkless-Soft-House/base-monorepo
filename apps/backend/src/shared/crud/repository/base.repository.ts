@@ -12,9 +12,9 @@ export class BaseRepository<T> {
     const entityManager: EntityManager =
       this.request[ENTITY_MANAGER_KEY] ?? this.dataSource.manager;
 
-    console.log(
-      `Im using the ${this.request[ENTITY_MANAGER_KEY] ? 'Transition' : 'Manager'} to get the repository`,
-    );
+    // console.log(
+    //   `Im using the ${this.request[ENTITY_MANAGER_KEY] ? 'Transition' : 'Manager'} to get the repository`,
+    // );
     return entityManager.getRepository(entityCls);
   }
 }
