@@ -38,10 +38,7 @@ export default async function cacheConfig(
         max: cache.max,
       };
     } catch (error) {
-      console.error(
-        'Redis connection failed, falling back to in-memory cache',
-        error,
-      );
+      console.error('Redis connection failed, falling back to in-memory cache');
       return {
         ttl: cache.ttl,
         max: cache.max,
