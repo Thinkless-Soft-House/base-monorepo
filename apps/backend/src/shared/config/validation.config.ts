@@ -20,7 +20,7 @@ export class ValidationErrorWithIndex extends ValidationError {
 
 const validationDefaultConfiguration = {
   whitelist: true,
-  forbidNonWhitelisted: true,
+  forbidNonWhitelisted: false,
   transform: true,
   skipMissingProperties: false,
   validationError: { target: false },
@@ -34,18 +34,15 @@ export class ValidationConfig {
         error[0] instanceof ValidationError)
     );
   }
+
   static handleError<T>(error: any) {
     let message;
     if (error[0] instanceof ValidationErrorWithIndex) {
       message = this.handleValidatorsErrorWithList(
-        error as unknown as ValidationErrorWithIndex[],
+        error as ValidationErrorWithIndex[],
       );
-    }
-
-    if (error[0] instanceof ValidationError) {
-      message = this.handleValidatorsErrorWithItem(
-        error as unknown as ValidationError[],
-      );
+    } else if (error[0] instanceof ValidationError) {
+      message = this.handleValidatorsErrorWithItem(error as ValidationError[]);
     }
 
     return new ErrorHandlerResponse<T>({
@@ -68,13 +65,14 @@ export class ValidationConfig {
       validationDefaultConfiguration,
       customConfiguration,
     );
-    await validateOrReject(entity, configuration);
+    await validateOrReject(entity, { ...configuration } as ValidatorOptions);
 
     if (configuration.transform) {
       return entity;
     }
     return object;
   }
+
   static async validationListDTO<T>(
     val: { metatype: T; object: any[] },
     customConfiguration: ValidatorOptions = {},
@@ -86,6 +84,7 @@ export class ValidationConfig {
       validationDefaultConfiguration,
       customConfiguration,
     );
+
     for (const iterator of object) {
       const entity = plainToInstance(
         metatype as any,
@@ -124,21 +123,14 @@ export class ValidationConfig {
   }
 
   private static handleValidatorsErrorWithItem(error: ValidationError[]) {
-    return error
-      .map((err) => {
-        const errorString = this.handleValidatorsError(err);
-        return errorString;
-      })
-      .join(', ');
+    return error.map((err) => this.handleValidatorsError(err)).join(', ');
   }
+
   private static handleValidatorsErrorWithList(
     error: ValidationErrorWithIndex[],
   ) {
     return error
-      .map((err) => {
-        const errorString = this.handleValidatorsError(err);
-        return `Item ${err.index} - ${errorString}`;
-      })
+      .map((err) => `Item ${err.index} - ${this.handleValidatorsError(err)}`)
       .join(', ');
   }
 
