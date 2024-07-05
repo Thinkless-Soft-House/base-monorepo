@@ -14,4 +14,8 @@ export class UsersService extends CrudService<
   constructor(private usersRepository: UsersRepository) {
     super('users', usersRepository, {});
   }
+
+  async getWithPhotos(id: number): Promise<UserEntity> {
+    return this.usersRepository.getWithPhotos(id);
+  }
 }

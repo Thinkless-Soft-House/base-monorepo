@@ -1,4 +1,4 @@
-import { Controller, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CrudController } from '@crud/controllers/crud.controller';
 import { UserEntity } from './schemas/users.entity';
@@ -19,5 +19,10 @@ export class UsersController extends CrudController<
     cs: ConfigService,
   ) {
     super(usersService, cs, CreateUserDTO, SetUserDTO, UpdateUserDTO);
+  }
+
+  @Get('photos/:id')
+  async getWithPhotos(@Param('id') id: number): Promise<UserEntity> {
+    return this.usersService.getWithPhotos(id);
   }
 }

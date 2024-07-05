@@ -9,9 +9,10 @@ import {
   Relation,
 } from '@definitions/crud.types';
 import DatabaseHandler from '@handlers/database.handler';
+import { MyBaseEntity } from '@database/base.modal';
 
 export class CrudRepository<
-  Entity,
+  Entity extends MyBaseEntity,
   CreateEntityDTO,
   SetEntityDTO extends IsUpdateEntityDTO,
   UpdateEntityDTO extends IsUpdateEntityDTO,
@@ -71,7 +72,7 @@ export class CrudRepository<
       console.log('Hit here!');
       let data = this.getRepository(this.entity)
         .createQueryBuilder(this.table)
-        .andWhere(`${this.options.id} = :id`, { id });
+        .andWhere(`${this.table}.${this.options.id} = :id`, { id });
 
       data = DatabaseHandler.getRelations(this.table, data, relations);
 
@@ -91,16 +92,10 @@ export class CrudRepository<
 
   async createOne(createDto: CreateEntityDTO): Promise<Entity> {
     try {
-      const data = await this.getRepository(this.entity)
-        .createQueryBuilder(this.table)
-        .insert()
-        .values([createDto as any])
-        .execute();
+      const rep = await this.getRepository(this.entity);
+      const data = await rep.save(createDto as any);
 
-      console.log('insert result', data);
-      console.log('insert result createDTO', createDto);
-
-      return { ...createDto } as unknown as Entity;
+      return { ...data } as unknown as Entity;
     } catch (error: any) {
       throw DatabaseHandler.builderErrorHandler(error);
     }
@@ -108,13 +103,10 @@ export class CrudRepository<
 
   async createMany(createManyDto: CreateEntityDTO[]): Promise<Entity[]> {
     try {
-      await this.getRepository(this.entity)
-        .createQueryBuilder(this.table)
-        .insert()
-        .values(createManyDto as any[])
-        .execute();
+      const rep = await this.getRepository(this.entity);
+      const data = await rep.save(createManyDto as any);
 
-      return [...createManyDto] as unknown as Entity[];
+      return data as unknown as Entity[];
     } catch (error: any) {
       console.error(error);
       throw DatabaseHandler.builderErrorHandler(error);
@@ -130,10 +122,10 @@ export class CrudRepository<
 
       let item = { ...setDto };
       if (action === 'UPDATE') {
-        const find = await this.getRepository(this.entity)
-          .createQueryBuilder(this.table)
-          .where(`${this.options.id} = :id`, { id: setDto.id })
-          .getOne();
+        const find = await this.getRepository(this.entity).findOne({
+          where: { id: setDto.id as any },
+          relations: this.getRelations(),
+        });
 
         if (!find) {
           throw DatabaseHandler.builderErrorHandler({
@@ -142,25 +134,37 @@ export class CrudRepository<
           });
         }
 
+        // Identificar e remover relações ausentes
+        // const entityRelations = this.getRelations();
+        // for (const relation of entityRelations) {
+        //   const currentRelationItems = find[relation];
+        //   const updatedRelationItems = setDto[relation];
+
+        //   if (
+        //     Array.isArray(currentRelationItems) &&
+        //     Array.isArray(updatedRelationItems)
+        //   ) {
+        //     const itemsToRemove = currentRelationItems.filter(
+        //       (currentItem) =>
+        //         !updatedRelationItems.some(
+        //           (updatedItem) => updatedItem.id === currentItem.id,
+        //         ),
+        //     );
+
+        //     if (itemsToRemove.length > 0) {
+        //       const relationRepository = this.getRepository(
+        //         this.getRelationEntity(relation),
+        //       );
+        //       await relationRepository.remove(itemsToRemove);
+        //     }
+        //   }
+        // }
+
         item = { ...find, ...setDto };
       }
-      console.log('item', item);
 
-      if (action === 'UPDATE')
-        await this.getRepository(this.entity)
-          .createQueryBuilder(this.table)
-          .update()
-          .set({ ...(item as any), updatedAt: new Date() })
-          .where(`${this.options.id} = :id`, { id: item.id })
-          .execute();
-      if (action === 'CREATE')
-        await this.getRepository(this.entity)
-          .createQueryBuilder(this.table)
-          .insert()
-          .values([item as any])
-          .execute();
-
-      return { ...item } as unknown as Entity;
+      const data = await this.getRepository(this.entity).save(item as any);
+      return { ...data } as unknown as Entity;
     } catch (error: any) {
       throw DatabaseHandler.builderErrorHandler(error);
     }
@@ -174,18 +178,30 @@ export class CrudRepository<
   }
 
   async updateOne(id: number, updateDto: UpdateEntityDTO): Promise<Entity> {
-    await this.getRepository(this.entity)
-      .createQueryBuilder(this.table)
-      .update()
-      .set({ ...(updateDto as any), updatedAt: new Date() })
-      .where(`${this.options.id} = :id`, { id })
-      .execute();
+    try {
+      let item = await this.getRepository(this.entity).findOne({
+        where: {
+          id: id as any,
+        },
+      });
 
-    const item = await this.getRepository(this.entity)
-      .createQueryBuilder(this.table)
-      .where(`${this.options.id} = :id`, { id })
-      .getOneOrFail();
-    return { ...item } as unknown as Entity;
+      await this.getRepository(this.entity).save({
+        ...item,
+        ...updateDto,
+      } as any);
+
+      item = await this.getRepository(this.entity).findOne({
+        where: {
+          id: id as any,
+        },
+        relations: this.getRelations(),
+      });
+
+      return { ...item } as unknown as Entity;
+    } catch (error) {
+      console.error('Error on Update One => ', error);
+      throw DatabaseHandler.builderErrorHandler(error);
+    }
   }
 
   async updateMany(updateManyDto: UpdateEntityDTO[]) {
@@ -196,11 +212,7 @@ export class CrudRepository<
   }
 
   async deleteOne(id: number) {
-    await this.getRepository(this.entity)
-      .createQueryBuilder(this.table)
-      .delete()
-      .where(`${this.options.id} = :id`, { id })
-      .execute();
+    await this.getRepository(this.entity).delete(id as any);
     return { id } as Entity;
   }
 
@@ -219,6 +231,26 @@ export class CrudRepository<
     data = DatabaseHandler.getRelations(this.table, data, relations);
 
     return data;
+  }
+
+  private getRelations(): string[] {
+    const relations = [];
+    const entityMetadata = this.getRepository(this.entity).metadata;
+    entityMetadata.relations.forEach((relation) => {
+      if (relation.isOneToMany) {
+        relations.push(relation.propertyName);
+      }
+    });
+    return relations;
+  }
+
+  // Função para obter a entidade de uma relação
+  private getRelationEntity(relation: string): any {
+    const entityMetadata = this.getRepository(this.entity).metadata;
+    const relationMetadata = entityMetadata.relations.find(
+      (r) => r.propertyName === relation,
+    );
+    return relationMetadata.type;
   }
 
   // Target to override in the child class to create custom filters

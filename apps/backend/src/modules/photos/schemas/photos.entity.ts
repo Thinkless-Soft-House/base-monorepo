@@ -7,7 +7,13 @@ export class PhotoEntity extends MyBaseEntity {
   @Column()
   name: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.photos)
+  @Column()
+  userId: number;
+
+  @ManyToOne(() => UserEntity, (user) => user.photos, {
+    // cascade: ['insert', 'update', 'remove'],
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userId' })
   user: Relation<UserEntity>;
 }

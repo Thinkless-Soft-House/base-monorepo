@@ -98,7 +98,9 @@ export default class DatabaseHandler {
   ): SelectQueryBuilder<T> {
     if (relation.length) {
       relation.forEach((rel) => {
-        query.leftJoinAndSelect(`${table}.${rel.path}`, rel.name);
+        const path = `${table}.${rel.path}`;
+        console.log(`path => ${path} => ${rel.name}`);
+        query.leftJoinAndSelect(path, rel.name);
       });
     }
 

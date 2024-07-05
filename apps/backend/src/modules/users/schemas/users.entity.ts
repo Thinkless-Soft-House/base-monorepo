@@ -14,6 +14,8 @@ export class UserEntity extends MyBaseEntity {
   @Column()
   password: string;
 
-  @OneToMany(() => PhotoEntity, (photo) => photo.user)
+  @OneToMany(() => PhotoEntity, (photo) => photo.user, {
+    cascade: ['insert', 'update', 'remove'],
+  })
   photos: Relation<PhotoEntity[]>;
 }

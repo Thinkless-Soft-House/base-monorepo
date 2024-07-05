@@ -16,4 +16,12 @@ export class UsersRepository extends CrudRepository<
   constructor(datasource: DataSource, @Inject(REQUEST) request: Request) {
     super(datasource, request, 'users', UserEntity, {});
   }
+
+  async getWithPhotos(id: number): Promise<UserEntity> {
+    return this.getRepository(UserEntity)
+      .createQueryBuilder('users')
+      .leftJoinAndSelect('users.photos', 'photos')
+      .where('users.id = :id', { id })
+      .getOne();
+  }
 }
