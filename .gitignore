@@ -2,12 +2,12 @@
 
 node_modules
 */dist
-*.env
-*.env.stage
-*.env.production
 .turbo
 
 # Backend
+*.env
+*.env.stage
+*.env.production
 
 
 # Frontend
